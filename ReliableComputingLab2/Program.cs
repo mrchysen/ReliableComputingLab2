@@ -1,5 +1,4 @@
 ﻿using ScottPlot;
-using System.Numerics;
 
 // Система 1 x1 > 0 x2 > 0 
 
