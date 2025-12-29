@@ -83,7 +83,12 @@ Interval[] b = [
     new (-1,1),
     ];
 
-var monteCarloPoints = SolveWithMonteCarlo(A, b, 12_500_00);
+var monteCarloPoints = SolveWithMonteCarlo(
+    A, b, 500_00,
+    system1,
+    system2,
+    system3,
+    system4);
 
 foreach (var p in monteCarloPoints)
 {
@@ -94,8 +99,15 @@ foreach (var p in monteCarloPoints)
 
 myPlot.GetImage(1024, 1024).SavePng("points1.png").LaunchFile();
 
-
-List<Coordinates> SolveWithMonteCarlo(Interval[][] a, Interval[] vec, int iterations, double eps = 1.0e-8)
+List<Coordinates> SolveWithMonteCarlo(
+    Interval[][] a, 
+    Interval[] vec, 
+    int iterations,
+    Func<double, double, bool> s1,
+    Func<double, double, bool> s2,
+    Func<double, double, bool> s3,
+    Func<double, double, bool> s4,
+    double eps = 1.0e-8)
 {
     List<Coordinates> result = new(iterations);
 
@@ -112,7 +124,18 @@ List<Coordinates> SolveWithMonteCarlo(Interval[][] a, Interval[] vec, int iterat
         //Console.WriteLine($"Matrix:\n{A[0][0]} {A[0][1]}\n{A[1][0]} {A[1][1]}");
         //Console.WriteLine($"vec:\n{b[0]} {b[1]}");
 
-        result.Add(SolveSIM(A, b, eps));
+        Func<double, double, bool> condition = (x, y) =>
+        {
+            if (x >= 0 && y >= 0) return s1(x, y);
+            else if (x <= 0 && y >= 0) return s2(x, y);
+            else if (x <= 0 && y <= 0) return s3(x, y);
+            else if (x >= 0 && y <= 0) return s4(x, y);
+            return false;
+        };
+
+        var point = SolveSIM(A, b, eps);
+        if (condition(point.X, point.Y))
+            result.Add(point);
     }
 
     return result;
